@@ -2,14 +2,15 @@ namespace DellFanControl.Services;
 
 /// <summary>
 /// Interface for IPMI service implementations
+/// Uses the shared status objects for temperatures and fans.
 /// </summary>
 public interface IIPMIService : IDisposable
 {
-    Task<List<TemperatureReading>> GetTemperaturesAsync();
-    Task<List<FanReading>> GetFanStatusAsync();
-    Task<bool> SetFanSpeedAsync(int percentage);
-    Task<bool> RestoreDynamicControlAsync();
-    Task<bool> TestConnectionAsync();
+    Task<TemperatureStatus> GetTemperaturesAsync(CancellationToken cancellationToken = default);
+    Task<FanStatus> GetFanStatusAsync(CancellationToken cancellationToken = default);
+    Task<bool> SetFanSpeedAsync(int percentage, CancellationToken cancellationToken = default);
+    Task<bool> RestoreDynamicControlAsync(CancellationToken cancellationToken = default);
+    Task<bool> TestConnectionAsync(CancellationToken cancellationToken = default);
 }
 
 public record TemperatureReading

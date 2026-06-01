@@ -1,4 +1,9 @@
 using System.Diagnostics;
+using System.Text;
+using System.Linq;
+using System.Threading;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 
 namespace DellFanControl.Services;
 
@@ -6,7 +11,7 @@ namespace DellFanControl.Services;
 /// Local in-band IPMI service using direct BMC access
 /// More reliable for Dell R720 XD servers
 /// </summary>
-public class IPMIService_Local : IDisposable
+public class IPMIService_Local : IIPMIService
 {
     private readonly ILogger<IPMIService_Local> _logger;
     private readonly string? _idracIp;
@@ -28,9 +33,9 @@ public class IPMIService_Local : IDisposable
     /// <summary>
     /// Get CPU temperatures from IPMI sensors
     /// </summary>
-    public async Task<List<TemperatureReading>> GetTemperaturesAsync()
+    public async Task<TemperatureStatus> GetTemperaturesAsync(CancellationToken cancellationToken = default)
     {
-        var temperatures = new List<TemperatureReading>();
+        var temperatures = new List<int>();
 
         try
         {
@@ -56,12 +61,7 @@ public class IPMIService_Local : IDisposable
 
                         if (double.TryParse(tempValue, out var temp))
                         {
-                            temperatures.Add(new TemperatureReading
-                            {
-                                Name = sensorName,
-                                Value = temp,
-                                Unit = "°C"
-                            });
+                            temperatures.Add((int)Math.Round(temp));
                         }
                     }
                 }
@@ -74,15 +74,22 @@ public class IPMIService_Local : IDisposable
             _logger.LogError(ex, "Error retrieving temperatures from IPMI");
         }
 
-        return temperatures;
+        var highest = temperatures.Count > 0 ? temperatures.Max() : 0;
+        return new TemperatureStatus
+        {
+            HighestTempCelsius = highest,
+            AllTemperatures = temperatures,
+            Timestamp = DateTime.UtcNow,
+            LastUpdateTime = DateTime.Now
+        };
     }
 
     /// <summary>
     /// Get fan speed information from IPMI sensors
     /// </summary>
-    public async Task<List<FanReading>> GetFanStatusAsync()
+    public async Task<FanStatus> GetFanStatusAsync(CancellationToken cancellationToken = default)
     {
-        var fans = new List<FanReading>();
+        var fans = new List<FanInfo>();
 
         try
         {
@@ -104,10 +111,11 @@ public class IPMIService_Local : IDisposable
 
                         if (int.TryParse(rpmValue, out var rpm))
                         {
-                            fans.Add(new FanReading
+                            fans.Add(new FanInfo
                             {
                                 Name = fanName,
-                                SpeedRPM = rpm
+                                RPM = rpm,
+                                Timestamp = DateTime.Now
                             });
                         }
                     }
@@ -121,13 +129,18 @@ public class IPMIService_Local : IDisposable
             _logger.LogError(ex, "Error retrieving fan status from IPMI");
         }
 
-        return fans;
+        return new FanStatus
+        {
+            Fans = fans,
+            Timestamp = DateTime.UtcNow,
+            LastUpdateTime = DateTime.Now
+        };
     }
 
     /// <summary>
     /// Set fan speed to manual percentage
     /// </summary>
-    public async Task<bool> SetFanSpeedAsync(int percentage)
+    public async Task<bool> SetFanSpeedAsync(int percentage, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -150,7 +163,7 @@ public class IPMIService_Local : IDisposable
     /// <summary>
     /// Restore dynamic fan control
     /// </summary>
-    public async Task<bool> RestoreDynamicControlAsync()
+    public async Task<bool> RestoreDynamicControlAsync(CancellationToken cancellationToken = default)
     {
         try
         {
@@ -170,11 +183,15 @@ public class IPMIService_Local : IDisposable
     /// <summary>
     /// Test IPMI connection
     /// </summary>
-    public async Task<bool> TestConnectionAsync()
+    public async Task<bool> TestConnectionAsync(CancellationToken cancellationToken = default)
     {
         try
         {
             var command = BuildCommand("mc info");
+
+            // print command for debugging
+            _logger.LogInformation("Testing IPMI connection with command: {Command}", command);
+
             var output = await ExecuteCommandAsync(command);
 
             // Check if output contains expected BMC info
@@ -234,7 +251,7 @@ public class IPMIService_Local : IDisposable
 
         cmd.Add(arguments);
 
-        return string.Join(" ", cmd.Select(arg => arg.Contains(" ") ? $"\"{arg}\"" : arg));
+        return string.Join(" ", cmd.Select(arg => arg.Contains(" ") ? $"{arg}" : arg));
     }
 
     /// <summary>
@@ -314,17 +331,4 @@ public class IPMIService_Local : IDisposable
     {
         // No resources to dispose
     }
-}
-
-public record TemperatureReading
-{
-    public string Name { get; init; } = string.Empty;
-    public double Value { get; init; }
-    public string Unit { get; init; } = string.Empty;
-}
-
-public record FanReading
-{
-    public string Name { get; init; } = string.Empty;
-    public int SpeedRPM { get; init; }
 }

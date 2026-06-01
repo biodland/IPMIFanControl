@@ -7,7 +7,7 @@ namespace DellFanControl.Services;
 public class FanControlService : BackgroundService
 {
     private readonly ILogger<FanControlService> _logger;
-    private readonly IPMIService _ipmiService;
+    private readonly IIPMIService _ipmiService;
     private readonly IConfiguration _configuration;
     private readonly FanStatusLogger _statusLogger;
 
@@ -19,7 +19,7 @@ public class FanControlService : BackgroundService
 
     public FanControlService(
         ILogger<FanControlService> logger,
-        IPMIService ipmiService,
+        IIPMIService ipmiService,
         IConfiguration configuration,
         FanStatusLogger statusLogger)
     {

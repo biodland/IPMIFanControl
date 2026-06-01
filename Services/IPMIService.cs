@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading;
 
 namespace DellFanControl.Services;
 
@@ -74,8 +76,8 @@ public class IPMIService : IIPMIService
             // raw 0x30 0x30 0x02 0xff <hex_value>
             string command = $"raw 0x30 0x30 0x02 0xff {hexValue}";
             await RunIpmitoolCommandAsync(command, cancellationToken);
-            
             _logger.LogInformation("Fan speed set successfully to {Percentage}%", percentage);
+            return true;
         }
         catch (Exception ex)
         {
@@ -97,6 +99,7 @@ public class IPMIService : IIPMIService
             await RunIpmitoolCommandAsync("raw 0x30 0x30 0x01 0x01", cancellationToken);
             
             _logger.LogInformation("Dynamic fan control restored successfully");
+            return true;
         }
         catch (Exception ex)
         {
@@ -120,6 +123,7 @@ public class IPMIService : IIPMIService
             
             return new FanStatus
             {
+                
                 Fans = fans,
                 Timestamp = DateTime.UtcNow,
                 LastUpdateTime = DateTime.Now
@@ -133,9 +137,23 @@ public class IPMIService : IIPMIService
     }
 
     /// <summary>
+    /// Interface-compatible fan status: returns simple list of `FanReading`.
+    /// </summary>
+    public async Task<List<FanReading>> GetFanStatusAsync()
+    {
+        var status = await GetFanStatusAsync(CancellationToken.None);
+
+        return status.Fans.Select(f => new FanReading
+        {
+            Name = f.Name,
+            SpeedRPM = f.RPM
+        }).ToList();
+    }
+
+    /// <summary>
     /// Runs an ipmitool command and returns the output
     /// </summary>
-    private async Task<string> RunIpmitoolCommandAsync(string command, CancellationToken cancellationToken)
+    private async Task<string> RunIpmitoolCommandAsync(string command, CancellationToken cancellationToken = default)
     {
         var startInfo = new ProcessStartInfo
         {
@@ -246,11 +264,11 @@ public class IPMIService : IIPMIService
     /// <summary>
     /// Test IPMI connection
     /// </summary>
-    public async Task<bool> TestConnectionAsync()
+    public async Task<bool> TestConnectionAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            var result = await RunIpmitoolCommandAsync("mc info");
+            var result = await RunIpmitoolCommandAsync("mc info", cancellationToken);
             bool success = result.Contains("Device ID") || result.Contains("Manufacturer");
             _logger.LogInformation("IPMI connection test: {Status}", success ? "SUCCESS" : "FAILED");
             return success;
@@ -262,16 +280,6 @@ public class IPMIService : IIPMIService
         }
     }
 
-    /// <summary>
-    /// Get temperatures in standardized format
-    /// </summary>
-        var status = await GetFanStatusAsync(cancellationToken);
-        return status.Fans.Select(f => new FanReading
-        {
-            Name = f.Name,
-            SpeedRPM = f.RPM
-        }).ToList();
-    }
 
     public void Dispose()
     {
@@ -281,35 +289,9 @@ public class IPMIService : IIPMIService
     /// <summary>
     /// Get temperatures in standardized format (interface implementation)
     /// </summary>
-    public async Task<List<TemperatureReading>> GetTemperaturesAsync(CancellationToken cancellationToken = default)
+    public async Task<TemperatureStatus> GetTemperaturesAsync(CancellationToken cancellationToken = default)
     {
-        var status = await GetTemperaturesStatusAsync(cancellationToken);
-        var readings = new List<TemperatureReading>();
-
-        foreach (var temp in status.AllTemperatures)
-        {
-            readings.Add(new TemperatureReading
-            {
-                Name = "Unknown Sensor",
-                Value = temp,
-                Unit = "°C"
-            });
-        }
-
-        return readings;
-    }
-
-    /// <summary>
-    /// Get fan status in standardized format (interface implementation)
-    /// </summary>
-    public async Task<List<FanReading>> GetFanStatusAsync(CancellationToken cancellationToken = default)
-    {
-        var status = await GetFanStatusInternalAsync(cancellationToken);
-        return status.Fans.Select(f => new FanReading
-        {
-            Name = f.Name,
-            SpeedRPM = f.RPM
-        }).ToList();
+        return await GetTemperaturesStatusAsync(cancellationToken);
     }
 
     /// <summary>
@@ -317,8 +299,7 @@ public class IPMIService : IIPMIService
     /// </summary>
     public async Task<bool> SetFanSpeedAsync(int percentage, CancellationToken cancellationToken = default)
     {
-        await SetFanSpeedInternalAsync(percentage, cancellationToken);
-        return true;
+        return await SetFanSpeedInternalAsync(percentage, cancellationToken);
     }
 
     /// <summary>
@@ -326,8 +307,7 @@ public class IPMIService : IIPMIService
     /// </summary>
     public async Task<bool> RestoreDynamicControlAsync(CancellationToken cancellationToken = default)
     {
-        await RestoreDynamicControlInternalAsync(cancellationToken);
-        return true;
+        return await RestoreDynamicControlInternalAsync(cancellationToken);
     }
 }
 

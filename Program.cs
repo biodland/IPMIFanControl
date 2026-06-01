@@ -38,7 +38,7 @@ builder.Logging.SetMinimumLevel(LogLevel.Information);
 // Configure Kestrel
 builder.WebHost.ConfigureKestrel(options =>
 {
-    var port = builder.Configuration.GetValue<int>("Server:Port", 5000);
+    var port = builder.Configuration.GetValue<int>("Server:Port", 1080);
     options.ListenAnyIP(port);
     
     // Log the URL
