@@ -5,232 +5,226 @@
 @model dynamic
 
 <div class="dashboard">
-    <!-- Header -->
+    <!-- Compact Header -->
     <div class="header">
-        <div class="header-content">
-            <div class="title-row">
-                <h1>🖥️ Dell R720 XD</h1>
-                <span class="status-badge" id="systemStatus">● Online</span>
-            </div>
-            <div class="subtitle">Fan Control & Temperature Monitoring</div>
+        <div class="header-left">
+            <h1>🖥️ Dell R720 XD</h1>
+            <span class="status-badge" id="systemStatus">● Online</span>
         </div>
-        <div class="last-update" id="lastUpdate">Loading...</div>
+        <div class="update-info">
+            <span id="lastUpdate">Loading...</span>
+            <span class="refresh-interval">• 5s refresh</span>
+        </div>
     </div>
 
-    <!-- Error/Success Message -->
+    <!-- Quick Stats Bar - Super Compact -->
+    <div class="quick-stats">
+        <div class="quick-stat temp-stat">
+            <div class="quick-label">Max Temp</div>
+            <div class="quick-value" id="maxTemp">--°C</div>
+            <div class="quick-indicator" id="tempIndicator"></div>
+        </div>
+        <div class="quick-stat fan-stat">
+            <div class="quick-label">Fans</div>
+            <div class="quick-value" id="avgRpm">-- RPM</div>
+            <div class="quick-sub" id="fanCount">0 fans</div>
+        </div>
+        <div class="quick-stat power-stat">
+            <div class="quick-label">Power</div>
+            <div class="quick-value" id="totalPower">-- W</div>
+            <div class="quick-sub" id="powerSource">Loading</div>
+        </div>
+        <div class="quick-stat mode-stat">
+            <div class="quick-label">Mode</div>
+            <div class="quick-value" id="controlMode">--</div>
+            <div class="quick-sub" id="controlModeDetail">Manual</div>
+        </div>
+    </div>
+
+    <!-- Message -->
     <div id="message" class="message"></div>
 
-    <!-- Main Stats Grid -->
-    <div class="stats-grid">
-        <!-- Temperature Card -->
-        <div class="tile-card tile-temperature">
-            <div class="tile-icon">🌡️</div>
-            <div class="tile-content">
-                <div class="tile-title">Max Temperature</div>
-                <div class="tile-value"><span id="maxTemp">--</span><span class="unit">°C</span></div>
-                <div class="tile-status" id="tempStatus">Loading...</div>
+    <!-- Main Content Grid -->
+    <div class="content-grid">
+        <!-- CPU Section -->
+        <div class="section-card">
+            <div class="section-title">
+                <span class="section-icon">🖥️</span>
+                <span class="section-name">CPU Temperatures</span>
+                <span class="item-count" id="cpuCoreCount">0</span>
+            </div>
+            <div class="section-content">
+                <div class="cores-container" id="cpuCoresGrid">
+                    <div class="loading">Loading...</div>
+                </div>
             </div>
         </div>
 
-        <!-- Fans Card -->
-        <div class="tile-card tile-fans">
-            <div class="tile-icon">💨</div>
-            <div class="tile-content">
-                <div class="tile-title">Avg Fan Speed</div>
-                <div class="tile-value"><span id="avgRpm">--</span><span class="unit">RPM</span></div>
-                <div class="tile-status"><span id="fanCount">0</span> fans</div>
+        <!-- Sensors Section -->
+        <div class="section-card">
+            <div class="section-title">
+                <span class="section-icon">🌡️</span>
+                <span class="section-name">Temperature Sensors</span>
+                <span class="item-count" id="sensorCount">0</span>
+            </div>
+            <div class="section-content">
+                <div class="sensors-container" id="sensorsGrid">
+                    <div class="loading">Loading...</div>
+                </div>
             </div>
         </div>
 
-        <!-- Power Card -->
-        <div class="tile-card tile-power">
-            <div class="tile-icon">⚡</div>
-            <div class="tile-content">
-                <div class="tile-title">Power Draw</div>
-                <div class="tile-value"><span id="totalPower">--</span><span class="unit">W</span></div>
-                <div class="tile-status" id="powerSource">Loading...</div>
+        <!-- GPUs Section -->
+        <div class="section-card gpu-section" id="gpuSection" style="display: none;">
+            <div class="section-title">
+                <span class="section-icon">🎮</span>
+                <span class="section-name">GPU Temperatures</span>
+                <span class="item-count" id="gpuCount">0</span>
             </div>
-        </div>
-
-        <!-- Control Mode Card -->
-        <div class="tile-card tile-mode">
-            <div class="tile-icon">⚙️</div>
-            <div class="tile-content">
-                <div class="tile-title">Control Mode</div>
-                <div class="tile-value-small" id="controlMode">Loading...</div>
-                <div class="tile-status" id="controlModeDetail">Manual</div>
+            <div class="section-content">
+                <div class="gpus-container" id="gpusGrid"></div>
             </div>
         </div>
     </div>
 
-    <!-- Main Grid Layout -->
-    <div class="main-grid">
-        <!-- Left Column: CPU Cores -->
-        <div class="grid-section">
-            <div class="section-header">
-                <h2>🖥️ CPU Core Temperatures</h2>
-                <span class="item-count" id="cpuCoreCount">0 cores</span>
-            </div>
-            <div class="cpu-cores-grid" id="cpuCoresGrid">
-                <div class="loading">Loading CPU cores...</div>
-            </div>
+    <!-- Compact Charts -->
+    <div class="charts-container" id="chartsContainer">
+        <div class="chart-card">
+            <div class="chart-title">📊 Temperature</div>
+            <canvas id="tempChart" height="100"></canvas>
         </div>
-
-        <!-- Middle Column: IPMI Sensors -->
-        <div class="grid-section">
-            <div class="section-header">
-                <h2>🌡️ Temperature Sensors</h2>
-                <span class="item-count" id="sensorCount">0 sensors</span>
-            </div>
-            <div class="sensors-grid" id="sensorsGrid">
-                <div class="loading">Loading sensors...</div>
-            </div>
+        <div class="chart-card">
+            <div class="chart-title">📊 Fans</div>
+            <canvas id="fanChart" height="100"></canvas>
         </div>
+        <div class="chart-card">
+            <div class="chart-title">📊 Power</div>
+            <canvas id="powerChart" height="100"></canvas>
+        </div>
+    </div>
 
-        <!-- Right Column: GPUs and Fans -->
-        <div class="grid-section">
-            <div class="section-header">
-                <h2>🎮 GPU Temperatures</h2>
-                <span class="item-count" id="gpuCount">0 GPUs</span>
-            </div>
-            <div class="gpus-grid" id="gpusGrid">
-                <div class="no-data">No GPUs detected</div>
+    <!-- Fans List -->
+    <div class="section-card">
+        <div class="section-title">
+            <span class="section-icon">💨</span>
+            <span class="section-name">Fan Speeds</span>
+            <span class="item-count" id="fanListCount">0</span>
+        </div>
+        <div class="section-content">
+            <div class="fans-grid" id="fansGrid">
+                <div class="loading">Loading...</div>
             </div>
         </div>
     </div>
 
-    <!-- Charts Section -->
-    <div class="charts-section">
-        <div class="chart-container">
-            <h3>📊 Temperature History</h3>
-            <canvas id="tempChart"></canvas>
-        </div>
-        <div class="chart-container">
-            <h3>📊 Fan Speed History</h3>
-            <canvas id="fanChart"></canvas>
-        </div>
-        <div class="chart-container">
-            <h3>📊 Power Consumption</h3>
-            <canvas id="powerChart"></canvas>
-        </div>
-    </div>
-
-    <!-- Fan Details Section -->
-    <div class="fans-section">
-        <div class="section-header">
-            <h2>💨 Fan Status</h2>
-            <span class="item-count" id="fanCountDetail">0 fans</span>
-        </div>
-        <div class="fans-grid" id="fansGrid">
-            <div class="loading">Loading fans...</div>
-        </div>
-    </div>
-
-    <!-- Controls Section -->
-    <div class="controls-section">
-        <div class="section-header">
-            <h2>🎛️ Speed Controls</h2>
+    <!-- Controls -->
+    <div class="controls-card">
+        <div class="section-title">
+            <span class="section-icon">🎛️</span>
+            <span class="section-name">Fan Control</span>
         </div>
         <div class="controls-content">
-            <button class="btn btn-restore" onclick="restoreDynamic()">🔄 Restore Auto</button>
-            <div class="speed-presets">
-                <button class="speed-btn" onclick="setSpeed(10)">10%</button>
-                <button class="speed-btn" onclick="setSpeed(15)">15%</button>
-                <button class="speed-btn" onclick="setSpeed(20)">20%</button>
-                <button class="speed-btn" onclick="setSpeed(25)">25%</button>
-                <button class="speed-btn" onclick="setSpeed(35)">35%</button>
-                <button class="speed-btn" onclick="setSpeed(50)">50%</button>
+            <button class="btn btn-primary" onclick="restoreDynamic()">🔄 Auto (Dynamic)</button>
+            <div class="speed-buttons">
+                <button class="speed-btn" data-speed="10">10%</button>
+                <button class="speed-btn" data-speed="15">15%</button>
+                <button class="speed-btn" data-speed="20">20%</button>
+                <button class="speed-btn" data-speed="25">25%</button>
+                <button class="speed-btn" data-speed="35">35%</button>
+                <button class="speed-btn" data-speed="50">50%</button>
             </div>
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-    // Global variables for charts
-    let tempChart, fanChart, powerChart;
-    let refreshInterval = null;
-    let maxDataPoints = 60; // Show last 5 minutes of data
+    // Chart.js with multiple CDN fallbacks
+    function loadChartJS() {
+        const cdns = [
+            'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+            'https://unpkg.com/chart.js@4.4.0/dist/chart.umd.min.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js'
+        ];
 
-    document.addEventListener('DOMContentLoaded', () => {
-        initCharts();
+        let attempt = 0;
+        function loadScript() {
+            const script = document.createElement('script');
+            script.src = cdns[attempt];
+            script.crossOrigin = 'anonymous';
+            script.onerror = () => {
+                console.warn(`CDN ${cdns[attempt]} failed, trying next...`);
+                attempt++;
+                if (attempt < cdns.length) {
+                    loadScript();
+                } else {
+                    console.error('All Chart.js CDNs failed');
+                    document.getElementById('chartsContainer').style.display = 'none';
+                    initDashboard();
+                }
+            };
+            script.onload = () => {
+                console.log('Chart.js loaded from', cdns[attempt]);
+                initDashboard();
+            };
+            document.head.appendChild(script);
+        }
+        loadScript();
+    }
+
+    // Global chart instances
+    let tempChart, fanChart, powerChart;
+    let refreshInterval;
+    let maxDataPoints = 60;
+    window.Chart = null;
+
+    function initDashboard() {
+        if (typeof Chart !== 'undefined') {
+            initCharts();
+        }
         updateDashboard();
         startAutoRefresh();
-    });
+    }
 
     function initCharts() {
-        const commonOptions = {
+        const chartOptions = {
             responsive: true,
-            maintainAspectRatio: true,
-            animation: { duration: 300 },
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
             scales: {
                 x: {
-                    display: true,
-                    grid: { color: 'rgba(255,255,255,0.1)' },
-                    ticks: { color: '#888', maxTicksLimit: 10 }
+                    display: false
                 },
                 y: {
                     display: true,
-                    grid: { color: 'rgba(255,255,255,0.1)' },
-                    ticks: { color: '#888' }
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: '#666', font: { size: 10 } }
                 }
             },
-            plugins: {
-                legend: {
-                    labels: { color: '#fff', font: { size: 11 } }
-                }
-            }
+            elements: {
+                point: { radius: 0 },
+                line: { tension: 0.4 }
+            },
+            animation: { duration: 300 }
         };
 
-        // Temperature Chart
         tempChart = new Chart(document.getElementById('tempChart'), {
             type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Max Temp (°C)',
-                    data: [],
-                    borderColor: '#ff6b6b',
-                    backgroundColor: 'rgba(255,107,107,0.1)',
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: commonOptions
+            data: { labels: [], datasets: [{ data: [], borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.1)', fill: true }] },
+            options: { ...chartOptions, scales: { ...chartOptions.scales, y: { ...chartOptions.scales.y, min: 20, max: 80 } } }
         });
 
-        // Fan Chart
         fanChart = new Chart(document.getElementById('fanChart'), {
             type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Avg RPM',
-                    data: [],
-                    borderColor: '#00d9ff',
-                    backgroundColor: 'rgba(0,217,255,0.1)',
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: commonOptions
+            data: { labels: [], datasets: [{ data: [], borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true }] },
+            options: { ...chartOptions, scales: { ...chartOptions.scales, y: { ...chartOptions.scales.y, min: 0, max: 20000 } } }
         });
 
-        // Power Chart
         powerChart = new Chart(document.getElementById('powerChart'), {
             type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Power (W)',
-                    data: [],
-                    borderColor: '#ffd700',
-                    backgroundColor: 'rgba(255,215,0,0.1)',
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: commonOptions
+            data: { labels: [], datasets: [{ data: [], borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', fill: true }] },
+            options: { ...chartOptions, scales: { ...chartOptions.scales, y: { ...chartOptions.scales.y, min: 0, max: 500 } } }
         });
     }
 
@@ -244,28 +238,40 @@
             const response = await fetch('/api/status');
             const data = await response.json();
 
-            // Update header timestamp
+            // Update time
             const time = new Date(data.timestamp);
-            document.getElementById('lastUpdate').textContent = 
-                'Updated: ' + time.toLocaleTimeString();
+            document.getElementById('lastUpdate').textContent = time.toLocaleTimeString();
 
-            // Update stats
-            updateStats(data);
-            
-            // Update CPU cores
+            // Quick stats
+            document.getElementById('maxTemp').textContent = data.temperatureStatus.highest + '°C';
+            document.getElementById('avgRpm').textContent = data.fans.averageRPM + ' RPM';
+            document.getElementById('fanCount').textContent = data.fans.count + ' fans';
+            document.getElementById('totalPower').textContent = data.power.totalWatts.toFixed(1) + ' W';
+            document.getElementById('powerSource').textContent = data.power.source || 'Est';
+            document.getElementById('controlMode').textContent = data.mode;
+            document.getElementById('controlModeDetail').textContent = data.mode.includes('Manual') ? 'Manual' : 'Auto';
+
+            // Temperature indicator
+            const tempIndicator = document.getElementById('tempIndicator');
+            const maxTemp = data.temperatureStatus.highest;
+            if (maxTemp < 40) {
+                tempIndicator.className = 'quick-indicator good';
+            } else if (maxTemp < 50) {
+                tempIndicator.className = 'quick-indicator warning';
+            } else {
+                tempIndicator.className = 'quick-indicator bad';
+            }
+
+            // Update sections
             updateCpuCores(data.system.cpuCores);
-            
-            // Update sensors
             updateSensors(data.sensors.temperatures);
-            
-            // Update GPUs
             updateGpus(data.system.gpus);
-            
-            // Update fans
             updateFans(data.fans);
 
             // Update charts
-            updateCharts(data);
+            if (typeof Chart !== 'undefined') {
+                updateCharts(data);
+            }
 
         } catch (error) {
             console.error('Update failed:', error);
@@ -273,63 +279,23 @@
         }
     }
 
-    function updateStats(data) {
-        const maxTemp = data.temperatureStatus.highest;
-        document.getElementById('maxTemp').textContent = maxTemp;
-        document.getElementById('avgRpm').textContent = data.fans.averageRPM;
-        document.getElementById('fanCount').textContent = data.fans.count;
-        document.getElementById('controlMode').textContent = data.mode;
-        
-        // Power
-        const totalPower = data.power.totalWatts;
-        document.getElementById('totalPower').textContent = totalPower.toFixed(1);
-        document.getElementById('powerSource').textContent = data.power.source || 'Estimated';
-
-        // Temperature status
-        const tempStatus = document.getElementById('tempStatus');
-        if (maxTemp < 40) {
-            tempStatus.textContent = '✓ Normal';
-            tempStatus.style.color = '#00ff88';
-        } else if (maxTemp < 50) {
-            tempStatus.textContent = '⚠ Elevated';
-            tempStatus.style.color = '#ffa500';
-        } else {
-            tempStatus.textContent = '🔥 High';
-            tempStatus.style.color = '#ff6b6b';
-        }
-
-        // Control mode styling
-        const modeEl = document.getElementById('controlMode');
-        if (data.mode.includes('Manual')) {
-            modeEl.style.color = '#ff6b6b';
-            document.getElementById('controlModeDetail').textContent = 'Manual Control';
-        } else {
-            modeEl.style.color = '#00d9ff';
-            document.getElementById('controlModeDetail').textContent = 'Automatic';
-        }
-    }
-
     function updateCpuCores(cores) {
         const grid = document.getElementById('cpuCoresGrid');
-        document.getElementById('cpuCoreCount').textContent = cores.length + ' cores';
+        document.getElementById('cpuCoreCount').textContent = cores.length;
 
         if (cores.length === 0) {
-            grid.innerHTML = '<div class="no-data">No CPU cores detected</div>';
+            grid.innerHTML = '<div class="no-data">No data</div>';
             return;
         }
 
         grid.innerHTML = cores.map(core => {
-            const statusColor = core.temperature < 45 ? '#00ff88' : 
-                               core.temperature < 55 ? '#ffa500' : '#ff6b6b';
-            const tempPercent = Math.min((core.temperature / 100) * 100, 100);
-            
+            const status = core.temperature < 45 ? 'good' : core.temperature < 55 ? 'warning' : 'bad';
+            const width = Math.min((core.temperature / 90) * 100, 100);
             return `
-                <div class="core-tile ${core.isPackage ? 'core-package' : ''}">
+                <div class="core-item ${core.isPackage ? 'package' : ''}">
                     <div class="core-name">${core.name}</div>
-                    <div class="core-visual">
-                        <div class="core-bar" style="width: ${tempPercent}%; background: ${statusColor}"></div>
-                    </div>
-                    <div class="core-value" style="color: ${statusColor}">${core.temperature}°C</div>
+                    <div class="core-bar-bg"><div class="core-bar ${status}" style="width: ${width}%"></div></div>
+                    <div class="core-temp ${status}">${core.temperature}°C</div>
                 </div>
             `;
         }).join('');
@@ -337,56 +303,45 @@
 
     function updateSensors(sensors) {
         const grid = document.getElementById('sensorsGrid');
-        document.getElementById('sensorCount').textContent = sensors.length + ' sensors';
+        document.getElementById('sensorCount').textContent = sensors.length;
 
         if (sensors.length === 0) {
-            grid.innerHTML = '<div class="no-data">No sensors detected</div>';
+            grid.innerHTML = '<div class="no-data">No data</div>';
             return;
         }
 
         grid.innerHTML = sensors.map(s => {
-            const statusColor = s.temperature < 40 ? '#00ff88' : 
-                               s.temperature < 50 ? '#ffa500' : '#ff6b6b';
-            const tempPercent = Math.min((s.temperature / 100) * 100, 100);
-            
+            const status = s.temperature < 40 ? 'good' : s.temperature < 50 ? 'warning' : 'bad';
+            const width = Math.min((s.temperature / 90) * 100, 100);
             return `
-                <div class="sensor-tile">
+                <div class="sensor-item">
                     <div class="sensor-name">${s.name}</div>
-                    <div class="sensor-visual">
-                        <div class="sensor-bar" style="width: ${tempPercent}%; background: ${statusColor}"></div>
-                    </div>
-                    <div class="sensor-value" style="color: ${statusColor}">${s.temperature}°C</div>
+                    <div class="sensor-bar-bg"><div class="sensor-bar ${status}" style="width: ${width}%"></div></div>
+                    <div class="sensor-temp ${status}">${s.temperature}°C</div>
                 </div>
             `;
         }).join('');
     }
 
     function updateGpus(gpus) {
+        const section = document.getElementById('gpuSection');
         const grid = document.getElementById('gpusGrid');
-        document.getElementById('gpuCount').textContent = gpus.length + ' GPUs';
+        document.getElementById('gpuCount').textContent = gpus.length;
 
         if (gpus.length === 0) {
-            grid.innerHTML = '<div class="no-data">No GPUs detected</div>';
+            section.style.display = 'none';
             return;
         }
 
+        section.style.display = 'block';
         grid.innerHTML = gpus.map(gpu => {
-            const typeIcon = gpu.type === 'NVIDIA' ? '🟢' : 
-                           gpu.type === 'AMD' ? '🔴' : '🔵';
-            const statusColor = gpu.temperature < 60 ? '#00ff88' : 
-                               gpu.temperature < 75 ? '#ffa500' : '#ff6b6b';
-            const tempPercent = Math.min((gpu.temperature / 100) * 100, 100);
-            
+            const status = gpu.temperature < 60 ? 'good' : gpu.temperature < 75 ? 'warning' : 'bad';
+            const width = Math.min((gpu.temperature / 100) * 100, 100);
             return `
-                <div class="gpu-tile">
-                    <div class="gpu-header">
-                        <span class="gpu-name">${gpu.name}</span>
-                        <span class="gpu-type">${typeIcon} ${gpu.type}</span>
-                    </div>
-                    <div class="gpu-visual">
-                        <div class="gpu-bar" style="width: ${tempPercent}%; background: ${statusColor}"></div>
-                    </div>
-                    <div class="gpu-value" style="color: ${statusColor}">${gpu.temperature}°C</div>
+                <div class="gpu-item">
+                    <div class="gpu-name">${gpu.name}</div>
+                    <div class="gpu-bar-bg"><div class="gpu-bar ${status}" style="width: ${width}%"></div></div>
+                    <div class="gpu-temp ${status}">${gpu.temperature}°C</div>
                     ${gpu.fanSpeed ? `<div class="gpu-fan">💨 ${gpu.fanSpeed}%</div>` : ''}
                 </div>
             `;
@@ -395,57 +350,44 @@
 
     function updateFans(fansData) {
         const grid = document.getElementById('fansGrid');
-        document.getElementById('fanCountDetail').textContent = fansData.count + ' fans';
+        document.getElementById('fanListCount').textContent = fansData.count;
 
         if (fansData.fans.length === 0) {
-            grid.innerHTML = '<div class="no-data">No fan data</div>';
+            grid.innerHTML = '<div class="no-data">No data</div>';
             return;
         }
 
-        const avg = fansData.averageRPM;
         grid.innerHTML = fansData.fans.map(fan => {
-            const percent = Math.min((fan.rpm / 20000) * 100, 100);
+            const width = Math.min((fan.rpm / 20000) * 100, 100);
             return `
-                <div class="fan-tile">
+                <div class="fan-item">
                     <div class="fan-name">${fan.name}</div>
-                    <div class="fan-visual">
-                        <div class="fan-bar" style="width: ${percent}%"></div>
-                    </div>
-                    <div class="fan-value">${fan.rpm} RPM</div>
+                    <div class="fan-bar-bg"><div class="fan-bar" style="width: ${width}%"></div></div>
+                    <div class="fan-rpm">${fan.rpm}</div>
                 </div>
             `;
         }).join('');
     }
 
     function updateCharts(data) {
-        const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+        const time = new Date().getTime();
 
-        // Temperature chart
-        tempChart.data.labels.push(time);
-        tempChart.data.datasets[0].data.push(data.temperatureStatus.highest);
-        if (tempChart.data.labels.length > maxDataPoints) {
-            tempChart.data.labels.shift();
-            tempChart.data.datasets[0].data.shift();
-        }
-        tempChart.update('none');
+        [tempChart, fanChart, powerChart].forEach((chart, index) => {
+            const datasets = [
+                [data.temperatureStatus.highest],
+                [data.fans.averageRPM],
+                [data.power.totalWatts]
+            ][index];
 
-        // Fan chart
-        fanChart.data.labels.push(time);
-        fanChart.data.datasets[0].data.push(data.fans.averageRPM);
-        if (fanChart.data.labels.length > maxDataPoints) {
-            fanChart.data.labels.shift();
-            fanChart.data.datasets[0].data.shift();
-        }
-        fanChart.update('none');
+            chart.data.labels.push(time);
+            chart.data.datasets[0].data.push(datasets[0]);
 
-        // Power chart
-        powerChart.data.labels.push(time);
-        powerChart.data.datasets[0].data.push(data.power.totalWatts);
-        if (powerChart.data.labels.length > maxDataPoints) {
-            powerChart.data.labels.shift();
-            powerChart.data.datasets[0].data.shift();
-        }
-        powerChart.update('none');
+            if (chart.data.labels.length > maxDataPoints) {
+                chart.data.labels.shift();
+                chart.data.datasets[0].data.shift();
+            }
+            chart.update('none');
+        });
     }
 
     async function setSpeed(speed) {
@@ -456,34 +398,21 @@
                 body: JSON.stringify({ speed: speed })
             });
             const result = await response.json();
-            
-            if (result.success) {
-                showMessage(`✓ Fan speed set to ${speed}%`, 'success');
-                updateDashboard();
-            } else {
-                showMessage('✖ ' + result.error, 'error');
-            }
-        } catch (error) {
-            showMessage('✖ Failed to set speed', 'error');
+            showMessage(result.success ? `✓ Fan at ${speed}%` : '✖ Failed', result.success ? 'success' : 'error');
+            if (result.success) updateDashboard();
+        } catch {
+            showMessage('✖ Failed', 'error');
         }
     }
 
     async function restoreDynamic() {
         try {
-            const response = await fetch('/api/control/dynamic', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
+            const response = await fetch('/api/control/dynamic', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
             const result = await response.json();
-            
-            if (result.success) {
-                showMessage('✓ Dynamic control restored', 'success');
-                updateDashboard();
-            } else {
-                showMessage('✖ ' + result.error, 'error');
-            }
-        } catch (error) {
-            showMessage('✖ Failed to restore control', 'error');
+            showMessage(result.success ? '✓ Auto mode' : '✖ Failed', result.success ? 'success' : 'error');
+            if (result.success) updateDashboard();
+        } catch {
+            showMessage('✖ Failed', 'error');
         }
     }
 
@@ -491,10 +420,16 @@
         const msg = document.getElementById('message');
         msg.textContent = text;
         msg.className = 'message ' + type;
-        
-        clearTimeout(window.messageTimeout);
-        window.messageTimeout = setTimeout(() => {
-            msg.className = 'message';
-        }, 3000);
+        setTimeout(() => msg.className = 'message', 3000);
     }
+
+    // Speed button handlers
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('speed-btn')) {
+            setSpeed(parseInt(e.target.dataset.speed));
+        }
+    });
+
+    // Start loading
+    loadChartJS();
 </script>

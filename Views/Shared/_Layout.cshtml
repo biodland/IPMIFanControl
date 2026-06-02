@@ -5,18 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dell R720 XD Fan Control</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: #0a0a12;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0f;
             color: #e0e0e0;
-            padding: 15px;
+            padding: 12px;
             min-height: 100vh;
+            line-height: 1.5;
         }
 
         .dashboard {
@@ -24,495 +21,409 @@
             margin: 0 auto;
         }
 
-        /* Header */
+        /* Compact Header */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.08));
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            border-radius: 12px;
-            padding: 18px 22px;
-            margin-bottom: 18px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
         }
 
-        .header-content h1 {
-            font-size: 1.4rem;
-            font-weight: 700;
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header h1 {
+            font-size: 1.2rem;
+            font-weight: 600;
             background: linear-gradient(135deg, #60a5fa, #a78bfa);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 4px;
-        }
-
-        .subtitle {
-            font-size: 0.8rem;
-            color: #6b7280;
-        }
-
-        .title-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
         }
 
         .status-badge {
             font-size: 0.7rem;
             color: #22c55e;
-            background: rgba(34, 197, 94, 0.1);
-            padding: 3px 10px;
-            border-radius: 20px;
+            background: rgba(34,197,94,0.1);
+            padding: 2px 8px;
+            border-radius: 12px;
         }
 
-        .last-update {
+        .update-info {
             font-size: 0.75rem;
-            color: #6b7280;
+            color: #666;
+            display: flex;
+            gap: 8px;
         }
 
-        /* Message */
-        .message {
-            display: none;
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 18px;
-            font-size: 0.9rem;
+        .refresh-interval {
+            color: #888;
         }
 
-        .message.success {
-            display: block;
-            background: rgba(34, 197, 94, 0.1);
-            border: 1px solid rgba(34, 197, 94, 0.3);
-            color: #22c55e;
-        }
-
-        .message.error {
-            display: block;
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #ef4444;
-        }
-
-        /* Stats Grid - Main Tiled Layout */
-        .stats-grid {
+        /* Quick Stats Bar - Super Compact */
+        .quick-stats {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            margin-bottom: 18px;
+            gap: 10px;
+            margin-bottom: 12px;
         }
 
-        .tile-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-            padding: 18px;
-            display: flex;
-            gap: 14px;
-            align-items: center;
-            transition: all 0.3s ease;
+        .quick-stat {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            padding: 14px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
         }
 
-        .tile-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-            border-color: rgba(99, 102, 241, 0.3);
-        }
-
-        .tile-icon {
-            font-size: 2rem;
-            opacity: 0.8;
-        }
-
-        .tile-content {
-            flex: 1;
-        }
-
-        .tile-title {
-            font-size: 0.7rem;
-            color: #6b7280;
-            margin-bottom: 4px;
+        .quick-label {
+            font-size: 0.65rem;
+            color: #666;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            margin-bottom: 4px;
         }
 
-        .tile-value {
-            font-size: 1.8rem;
+        .quick-value {
+            font-size: 1.6rem;
             font-weight: 700;
-            color: #e0e0e0;
-            line-height: 1.2;
+            margin-bottom: 2px;
         }
 
-        .tile-value .unit {
-            font-size: 0.9rem;
-            font-weight: 400;
-            color: #6b7280;
+        .quick-sub {
+            font-size: 0.7rem;
+            color: #888;
         }
 
-        .tile-value-small {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #e0e0e0;
+        .quick-indicator {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            border-radius: 0 0 10px 10px;
         }
 
-        .tile-status {
-            font-size: 0.75rem;
-            color: #6b7280;
-            margin-top: 4px;
-        }
+        .quick-indicator.good { background: linear-gradient(90deg, #22c55e, #16a34a); }
+        .quick-indicator.warning { background: linear-gradient(90deg, #f59e0b, #d97706); }
+        .quick-indicator.bad { background: linear-gradient(90deg, #ef4444, #dc2626); }
 
-        /* Tile-specific styles */
-        .tile-temperature .tile-value {
+        .temp-stat .quick-value {
             background: linear-gradient(135deg, #f97316, #f59e0b);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .tile-fans .tile-value {
+        .fan-stat .quick-value {
             background: linear-gradient(135deg, #3b82f6, #06b6d4);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .tile-power .tile-value {
-            background: linear-gradient(135deg, #ffd700, #ffaa00);
+        .power-stat .quick-value {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .tile-mode .tile-value-small {
-            background: linear-gradient(135deg, #8b5cf6, #d946ef);
+        .mode-stat .quick-value {
+            background: linear-gradient(135deg, #8b5cf6, #a855f7);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        /* Main Grid Section */
-        .main-grid {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr 1fr;
-            gap: 18px;
-            margin-bottom: 18px;
-        }
-
-        .grid-section {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 12px;
-            padding: 18px;
-        }
-
-        /* Section Headers */
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 14px;
-        }
-
-        .section-header h2 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #e0e0e0;
-        }
-
-        .item-count {
-            font-size: 0.75rem;
-            color: #6b7280;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 3px 10px;
-            border-radius: 20px;
-        }
-
-        /* CPU Cores Grid - Tiled Layout */
-        .cpu-cores-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 10px;
-        }
-
-        .core-tile {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+        /* Message */
+        .message {
+            display: none;
+            padding: 10px 14px;
             border-radius: 8px;
-            padding: 12px 10px;
-            text-align: center;
-            transition: all 0.2s ease;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+        }
+        .message.success {
+            display: block;
+            background: rgba(34,197,94,0.1);
+            border: 1px solid rgba(34,197,94,0.3);
+            color: #22c55e;
+        }
+        .message.error {
+            display: block;
+            background: rgba(239,68,68,0.1);
+            border: 1px solid rgba(239,68,68,0.3);
+            color: #ef4444;
         }
 
-        .core-tile.core-package {
-            border-color: rgba(99, 102, 241, 0.3);
-            background: rgba(99, 102, 241, 0.08);
-        }
-
-        .core-tile:hover {
-            border-color: rgba(99, 102, 241, 0.5);
-            transform: translateY(-2px);
-        }
-
-        .core-name {
-            font-size: 0.65rem;
-            color: #6b7280;
-            margin-bottom: 8px;
-            word-break: break-word;
-        }
-
-        .core-visual {
-            height: 4px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 2px;
-            overflow: hidden;
-            margin-bottom: 8px;
-        }
-
-        .core-bar {
-            height: 100%;
-            border-radius: 2px;
-            transition: width 0.5s ease;
-        }
-
-        .core-value {
-            font-size: 1rem;
-            font-weight: 700;
-        }
-
-        /* Sensors Grid - Tiled Layout */
-        .sensors-grid, .gpus-grid, .fans-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 10px;
-        }
-
-        .sensor-tile, .gpu-tile, .fan-tile {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 8px;
-            padding: 14px;
-            text-align: center;
-            transition: all 0.2s ease;
-        }
-
-        .sensor-tile:hover, .gpu-tile:hover, .fan-tile:hover {
-            border-color: rgba(99, 102, 241, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .sensor-name, .fan-name {
-            font-size: 0.7rem;
-            color: #6b7280;
-            margin-bottom: 8px;
-            word-break: break-word;
-        }
-
-        .sensor-visual, .gpu-visual, .fan-visual {
-            height: 4px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 2px;
-            overflow: hidden;
-            margin-bottom: 8px;
-        }
-
-        .sensor-bar, .gpu-bar, .fan-bar {
-            height: 100%;
-            border-radius: 2px;
-            transition: width 0.5s ease;
-        }
-
-        .sensor-value, .gpu-value {
-            font-size: 1.2rem;
-            font-weight: 700;
-        }
-
-        .fan-value {
-            font-size: 1rem;
-            font-weight: 600;
-        }
-
-        /* GPU-specific styles */
-        .gpu-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .gpu-name {
-            font-size: 0.7rem;
-            font-weight: 600;
-        }
-
-        .gpu-type {
-            font-size: 0.65rem;
-            color: #6b7280;
-        }
-
-        .gpu-fan {
-            font-size: 0.7rem;
-            color: #6b7280;
-            margin-top: 5px;
-        }
-
-        /* Charts Section */
-        .charts-section {
+        /* Content Grid */
+        .content-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 18px;
-            margin-bottom: 18px;
-        }
-
-        .chart-container {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 12px;
-            padding: 18px;
-        }
-
-        .chart-container h3 {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #e0e0e0;
+            gap: 12px;
             margin-bottom: 12px;
         }
 
-        .chart-container canvas {
-            max-height: 200px;
+        .section-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            overflow: hidden;
         }
 
-        /* Fans Section */
-        .fans-section, .controls-section {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 12px;
-            padding: 18px;
-            margin-bottom: 18px;
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .section-icon { font-size: 1rem; }
+        .section-name { flex: 1; }
+        .item-count {
+            font-size: 0.7rem;
+            color: #666;
+            background: rgba(255,255,255,0.04);
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .section-content {
+            padding: 12px;
+        }
+
+        /* Cores, Sensors, GPU items */
+        .cores-container, .sensors-container, .gpus-container {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .core-item, .sensor-item, .gpu-item {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: center;
+            padding: 8px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .core-item:hover, .sensor-item:hover, .gpu-item:hover {
+            background: rgba(255,255,255,0.04);
+        }
+
+        .core-item.package {
+            background: rgba(99,102,241,0.08);
+            border-left: 2px solid #6366f1;
+        }
+
+        .core-name, .sensor-name, .gpu-name {
+            font-size: 0.7rem;
+            color: #888;
+            grid-column: 1;
+        }
+
+        .core-bar-bg, .sensor-bar-bg, .gpu-bar-bg, .fan-bar-bg {
+            grid-column: 1;
+            height: 4px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .core-bar, .sensor-bar, .gpu-bar, .fan-bar {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        .core-bar.good, .sensor-bar.good, .gpu-bar.good { background: #22c55e; }
+        .core-bar.warning, .sensor-bar.warning, .gpu-bar.warning { background: #f59e0b; }
+        .core-bar.bad, .sensor-bar.bad, .gpu-bar.bad { background: #ef4444; }
+        .fan-bar { background: linear-gradient(90deg, #3b82f6, #06b6d4); }
+
+        .core-temp, .sensor-temp, .gpu-temp {
+            grid-column: 2;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .core-temp.good, .sensor-temp.good, .gpu-temp.good { color: #22c55e; }
+        .core-temp.warning, .sensor-temp.warning, .gpu-temp.warning { color: #f59e0b; }
+        .core-temp.bad, .sensor-temp.bad, .gpu-temp.bad { color: #ef4444; }
+
+        .gpu-fan {
+            grid-column: 1 / -1;
+            font-size: 0.7rem;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        /* Charts */
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .chart-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .chart-title {
+            font-size: 0.75rem;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        /* Fans Grid */
+        .fans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 8px;
+        }
+
+        .fan-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 10px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .fan-item:hover {
+            background: rgba(255,255,255,0.04);
+        }
+
+        .fan-name {
+            font-size: 0.7rem;
+            color: #888;
+        }
+
+        .fan-rpm {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #3b82f6;
+            text-align: right;
         }
 
         /* Controls */
+        .controls-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
         .controls-content {
+            padding: 12px;
             display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
+            gap: 12px;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .btn {
-            padding: 12px 24px;
+            padding: 10px 20px;
             border: none;
-            border-radius: 8px;
-            font-size: 0.9rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.2s;
         }
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
 
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn-restore {
-            background: linear-gradient(135deg, #22c55e, #10b981);
+        .btn-primary {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
             color: white;
         }
 
-        .speed-presets {
+        .speed-buttons {
             display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+            gap: 6px;
+            flex: 1;
+            justify-content: flex-end;
         }
 
         .speed-btn {
-            padding: 10px 18px;
-            border: 2px solid rgba(255, 255, 255, 0.15);
+            padding: 8px 14px;
+            border: 2px solid rgba(255,255,255,0.15);
             background: transparent;
-            color: #9ca3af;
-            border-radius: 8px;
-            font-size: 0.85rem;
+            color: #999;
+            border-radius: 6px;
+            font-size: 0.8rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.2s;
         }
 
         .speed-btn:hover {
             border-color: #6366f1;
             color: #6366f1;
-            background: rgba(99, 102, 241, 0.1);
-        }
-
-        .speed-btn:active {
-            transform: scale(0.95);
+            background: rgba(99,102,241,0.1);
         }
 
         /* Loading & No Data */
         .loading, .no-data {
             text-align: center;
-            color: #6b7280;
-            padding: 25px;
-            font-size: 0.85rem;
+            color: #666;
+            padding: 20px;
+            font-size: 0.8rem;
         }
 
         /* Scrollbar */
         ::-webkit-scrollbar {
-            width: 6px;
+            width: 4px;
         }
-
         ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 3px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 2px;
         }
-
         ::-webkit-scrollbar-thumb {
-            background: rgba(99, 102, 241, 0.5);
-            border-radius: 3px;
+            background: rgba(99,102,241,0.5);
+            border-radius: 2px;
         }
-
         ::-webkit-scrollbar-thumb:hover {
-            background: rgba(99, 102, 241, 0.7);
+            background: rgba(99,102,241,0.7);
         }
 
-        /* Responsive Design */
-        @@media (max-width: 1200px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .charts-section {
-                grid-template-columns: 1fr;
-            }
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .quick-stats { grid-template-columns: repeat(2, 1fr); }
+            .content-grid { grid-template-columns: 1fr; }
+            .charts-container { grid-template-columns: 1fr; }
         }
 
-        @@media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .controls-content {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .speed-presets {
-                justify-content: center;
-            }
-
-            .cpu-cores-grid {
-                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-            }
-
-            .sensors-grid, .gpus-grid, .fans-grid {
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            }
+        @media (max-width: 640px) {
+            .header { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .quick-stats { grid-template-columns: 1fr; }
+            .speed-buttons { justify-content: center; flex-wrap: wrap; }
+            .controls-content { flex-direction: column; }
         }
     </style>
 </head>
