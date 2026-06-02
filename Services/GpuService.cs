@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text;
 using Microsoft.Extensions.Logging;
 
 namespace DellFanControl.Services;
@@ -230,8 +231,8 @@ public class GpuService
                 }
                 else
                 {
-                    // Command failed, return empty string
-                    tcs.SetResult(string.Empty);
+                    // Command failed, return error message
+                    tcs.SetResult(error.ToString());
                 }
                 process.Dispose();
             };
@@ -242,7 +243,7 @@ public class GpuService
         }
         catch (Exception ex)
         {
-            tcs.SetResult(string.Empty);
+            tcs.SetResult(ex.Message);
         }
 
         return tcs.Task;

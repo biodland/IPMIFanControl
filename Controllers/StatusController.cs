@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using DellFanControl.Services;
+using System.Diagnostics;
+using System.Text;
 
 namespace DellFanControl.Controllers;
 
@@ -182,7 +184,7 @@ public class StatusController : Controller
                 }
                 else
                 {
-                    tcs.SetResult(string.Empty);
+                    tcs.SetResult(error.ToString());
                 }
                 process.Dispose();
             };
@@ -193,7 +195,7 @@ public class StatusController : Controller
         }
         catch (Exception ex)
         {
-            tcs.SetResult(string.Empty);
+            tcs.SetResult(ex.Message);
         }
 
         return tcs.Task;
