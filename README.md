@@ -25,6 +25,9 @@
 
 ## Screenshots
 
+![Screenshot of Dashboard](docs/screenshots/Dashboard.png)
+![Screenshot of System Stats page](docs/screenshots/SystemStats.png)
+
 ## Currently supported hardware
 
 | Vendor      | Model       | Status              |
