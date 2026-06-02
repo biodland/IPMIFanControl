@@ -278,6 +278,8 @@
             grid-template-columns: repeat(3, 1fr);
             gap: 12px;
             margin-bottom: 12px;
+            width: 100%;
+            overflow: hidden;
         }
 
         .chart-card {
@@ -285,6 +287,10 @@
             border: 1px solid rgba(255,255,255,0.06);
             border-radius: 10px;
             padding: 12px;
+            min-width: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .chart-title {
@@ -292,6 +298,19 @@
             color: #666;
             margin-bottom: 8px;
             font-weight: 600;
+        }
+
+        .chart-card canvas {
+            width: 100% !important;
+            max-width: 100% !important;
+            height: 120px !important;
+        }
+
+        .chart-card canvas {
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
+            min-height: 100px;
         }
 
         /* Fans Grid */
