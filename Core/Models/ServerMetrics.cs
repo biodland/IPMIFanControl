@@ -15,6 +15,7 @@ public class ServerMetrics
     public List<GpuReading> Gpus { get; set; } = new();
     public FanControlMode CurrentMode { get; set; } = FanControlMode.Unknown;
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public bool IsConnected { get; set; } = true;
     
     /// <summary>
     /// Maximum temperature across all sensors

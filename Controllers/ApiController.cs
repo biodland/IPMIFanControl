@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using ServerMonitor.Core.Interfaces;
 using ServerMonitor.Core.Models;
 using ServerMonitor.Services;
@@ -33,10 +34,29 @@ public class ApiController : ControllerBase
     [HttpGet("status")]
     public async Task<ActionResult<ServerMetrics>> GetStatus(CancellationToken cancellationToken)
     {
-        var metrics = _metrics.Latest;
-        if (metrics == null)
-            metrics = await _metrics.RefreshAsync(cancellationToken);
-        return Ok(metrics);
+        try
+        {
+            var metrics = _metrics.Latest;
+            if (metrics == null)
+            {
+                metrics = await _metrics.RefreshAsync(cancellationToken);
+            }
+            
+            // Mark as connected if we have data
+            metrics.IsConnected = true;
+            return Ok(metrics);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get status");
+            
+            // Return last known state marked as disconnected
+            var metrics = _metrics.Latest ?? new ServerMetrics();
+            metrics.IsConnected = false;
+            metrics.Timestamp = DateTime.UtcNow;
+            
+            return Ok(metrics);
+        }
     }
 
     /// <summary>Information about the active server provider</summary>

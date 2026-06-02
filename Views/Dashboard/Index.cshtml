@@ -10,7 +10,7 @@
     <div class="header">
         <div class="header-left">
             <h1>🖥️ @ViewBag.ProviderName</h1>
-            <span class="status-badge" id="systemStatus">● Online</span>
+            <span class="status-badge online" id="systemStatus"><span class="status-dot">●</span> Online</span>
         </div>
         <div class="update-info">
             <span id="lastUpdate">Loading...</span>
@@ -237,7 +237,29 @@
     async function updateDashboard() {
         try {
             const response = await fetch('/api/status');
-            const data = await response.json();
+            
+            // Try to parse response even if status is not OK
+            let data = null;
+            try {
+                data = await response.json();
+            } catch (e) {
+                console.error('Failed to parse response:', e);
+                updateConnectionStatus(false);
+                clearDashboardData();
+                showMessage('❌ Invalid response from server', 'error');
+                return;
+            }
+
+            // Check if server is connected to hardware
+            if (!data.isConnected) {
+                updateConnectionStatus(false);
+                clearDashboardData();
+                showMessage('❌ Server is not connected to hardware', 'error');
+                return;
+            }
+
+            // Update connection status
+            updateConnectionStatus(true);
 
             // Update time
             const time = new Date(data.timestamp);
@@ -280,8 +302,44 @@
 
         } catch (error) {
             console.error('Update failed:', error);
-            showMessage('❌ Connection failed', 'error');
+            updateConnectionStatus(false);
+            clearDashboardData();
+            showMessage('❌ Server connection lost', 'error');
         }
+    }
+
+    function updateConnectionStatus(isConnected) {
+        const badge = document.getElementById('systemStatus');
+        if (isConnected) {
+            badge.className = 'status-badge online';
+            badge.innerHTML = '<span class="status-dot">●</span> Online';
+        } else {
+            badge.className = 'status-badge offline';
+            badge.innerHTML = '<span class="status-dot">●</span> Offline';
+        }
+    }
+
+    function clearDashboardData() {
+        // Clear quick stats
+        document.getElementById('maxTemp').textContent = '--°C';
+        document.getElementById('avgRpm').textContent = '-- RPM';
+        document.getElementById('fanCount').textContent = '0 fans';
+        document.getElementById('totalPower').textContent = '-- W';
+        document.getElementById('powerSource').textContent = 'Offline';
+        document.getElementById('controlMode').textContent = '--';
+        document.getElementById('controlModeDetail').textContent = 'Disconnected';
+
+        // Clear temperature indicator
+        document.getElementById('tempIndicator').className = 'quick-indicator';
+
+        // Clear all sections
+        document.getElementById('cpuCoresGrid').innerHTML = '<div class="no-data">Server offline</div>';
+        document.getElementById('sensorsGrid').innerHTML = '<div class="no-data">Server offline</div>';
+        document.getElementById('fansGrid').innerHTML = '<div class="no-data">Server offline</div>';
+        document.getElementById('gpuSection').style.display = 'none';
+
+        // Update time to show last attempt
+        document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
     }
 
     function updateCpuCores(cores) {
