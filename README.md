@@ -23,6 +23,8 @@
 - 📈 **System Stats page** — CPU load, memory usage, per-NIC network throughput, filesystem & block-device I/O
 - 🔌 **REST API** for integration & automation
 
+## Screenshots
+
 ## Currently supported hardware
 
 | Vendor      | Model       | Status              |
