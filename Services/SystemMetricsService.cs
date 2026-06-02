@@ -101,18 +101,18 @@ public class SystemMetricsService
                         // Detect system power consumption
                         if (sensorName.Contains("system") || sensorName.Contains("pwr consumption"))
                         {
-                            metrics.TotalWatts = power;
+                            metrics.TotalWatts += power;
                             metrics.TotalSource = "IPMI";
                         }
                         // Detect CPU power
                         else if (sensorName.Contains("cpu"))
                         {
-                            metrics.CpuWatts = power;
+                            metrics.CpuWatts += power;
                         }
                         // Detect power supply readings
                         else if (sensorName.Contains("psu") || sensorName.Contains("power supply"))
                         {
-                            metrics.PowerSupply = power;
+                            metrics.PowerSupply += power;
                         }
                     }
                 }
@@ -232,9 +232,9 @@ public record CpuCoreTemp
 
 public record PowerMetrics
 {
-    public double TotalWatts { get; init; }
-    public string? TotalSource { get; init; }
-    public double CpuWatts { get; init; }
-    public double PowerSupply { get; init; }
-    public DateTime Timestamp { get; init; } = DateTime.Now;
+    public double TotalWatts { get; set; }
+    public string? TotalSource { get; set; }
+    public double CpuWatts { get; set; }
+    public double PowerSupply { get; set; }
+    public DateTime Timestamp { get; set; } = DateTime.Now;
 }
